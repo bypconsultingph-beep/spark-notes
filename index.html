@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>鐏垫劅鏀惰棌澶?/title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6c63ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="鐏垫劅鏀惰棌澶? />
+  <style>
+    /* 鈹€鈹€ Reset & Base 鈹€鈹€ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #6c63ff;
+      --accent-dark: #574fd6;
+      --bg: #f4f5f9;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --text-sub: #888;
+      --border: #ebebeb;
+      --radius: 16px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px; /* 搴曢儴瀵艰埅鍗犱綅 */
+    }
+
+    /* 鈹€鈹€ 椤堕儴鏍?鈹€鈹€ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 10px;
+    }
+
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .topbar-title span { color: var(--accent); }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 8px 12px;
+      gap: 8px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      outline: none;
+      color: var(--text);
+    }
+
+    .search-bar input::placeholder { color: var(--text-sub); }
+
+    .search-icon { color: var(--text-sub); font-size: 16px; }
+
+    /* 鈹€鈹€ 鏍囩绛涢€夋爮 鈹€鈹€ */
+    .tag-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tag-bar::-webkit-scrollbar { display: none; }
+
+    .tag-chip {
+      flex-shrink: 0;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-size: 13px;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .tag-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* 鈹€鈹€ 鍗＄墖鍒楄〃 鈹€鈹€ */
+    .card-list {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .note-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 宸︿晶绫诲瀷鑹叉潯 */
+    .note-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+    }
+
+    .note-card.type-text::before  { background: #6c63ff; }
+    .note-card.type-url::before   { background: #00b4d8; }
+    .note-card.type-image::before { background: #f77f00; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-type-icon { font-size: 15px; }
+
+    .card-time {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-left: auto;
+    }
+
+    .card-content {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .card-content.url-content a {
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .card-image {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 8px;
+      max-height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .card-tag {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: #f0eeff;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-btn {
+      background: none;
+      border: none;
+      font-size: 13px;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: color 0.15s;
+    }
+
+    .card-btn:hover { color: var(--accent); }
+    .card-btn.del:hover { color: #ff5c5c; }
+
+    /* 鈹€鈹€ 绌虹姸鎬?鈹€鈹€ */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-sub);
+    }
+
+    .empty-state .icon { font-size: 52px; margin-bottom: 14px; }
+    .empty-state p { font-size: 15px; }
+
+    /* 鈹€鈹€ 搴曢儴瀵艰埅 鈹€鈹€ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-sub);
+      font-size: 11px;
+      padding: 6px 20px;
+      transition: color 0.15s;
+    }
+
+    .nav-btn .nav-icon { font-size: 22px; }
+    .nav-btn.active { color: var(--accent); }
+
+    .nav-btn.add-btn {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      font-size: 28px;
+      padding: 0;
+      box-shadow: 0 4px 16px rgba(108,99,255,0.4);
+      margin-bottom: 8px;
+    }
+
+    /* 鈹€鈹€ 寮瑰嚭闈㈡澘锛堟柊寤?缂栬緫锛夆攢鈹€ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .overlay.open { display: flex; }
+
+    .sheet {
+      background: var(--card);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 20px 20px 40px;
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .sheet-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 18px;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    /* 绫诲瀷閫夋嫨 */
+    .type-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .type-tab {
+      flex: 1;
+      padding: 9px 0;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      color: var(--text-sub);
+    }
+
+    .type-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* 琛ㄥ崟鍏冪礌 */
+    .form-group { margin-bottom: 14px; }
+
+    .form-label {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-textarea:focus { border-color: var(--accent); }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    /* 鏍囩杈撳叆 */
+    .tag-input-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+      min-height: 44px;
+      align-items: center;
+      cursor: text;
+    }
+
+    .tag-input-wrap:focus-within { border-color: var(--accent); }
+
+    .tag-input-wrap .tag-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0eeff;
+      color: var(--accent);
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .tag-pill .remove-tag {
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      opacity: 0.6;
+    }
+
+    .tag-input-wrap input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 13px;
+      min-width: 80px;
+      flex: 1;
+      color: var(--text);
+    }
+
+    /* 鍥剧墖涓婁紶 */
+    .image-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-sub);
+      font-size: 13px;
+      transition: border-color 0.2s;
+    }
+
+    .image-upload-area:hover { border-color: var(--accent); }
+    .image-upload-area .upload-icon { font-size: 32px; margin-bottom: 6px; }
+
+    .image-preview {
+      width: 100%;
+      border-radius: 10px;
+      max-height: 180px;
+      object-fit: cover;
+      display: none;
+      margin-top: 8px;
+    }
+
+    /* 鎻愪氦鎸夐挳 */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover { background: var(--accent-dark); }
+
+    /* 鈹€鈹€ 鍝嶅簲寮忥細瀹藉睆鍙屽垪 鈹€鈹€ */
+    @media (min-width: 600px) {
+      .card-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+
+      .sheet { max-width: 480px; margin: 0 auto; border-radius: 24px; }
+      .overlay { align-items: center; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 椤堕儴鏍?-->
+  <div class="topbar">
+    <div class="topbar-title">鉁?鐏垫劅<span>鏀惰棌澶?/span></div>
+    <div class="search-bar">
+      <span class="search-icon">馃攳</span>
+      <input type="text" id="searchInput" placeholder="鎼滅储鍐呭銆佹爣绛锯€? />
+    </div>
+  </div>
+
+  <!-- 鏍囩绛涢€夋爮 -->
+  <div class="tag-bar" id="tagBar">
+    <div class="tag-chip active" data-tag="all">鍏ㄩ儴</div>
+  </div>
+
+  <!-- 鍗＄墖鍒楄〃 -->
+  <div class="card-list" id="cardList"></div>
+
+  <!-- 搴曢儴瀵艰埅 -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="navHome">
+      <span class="nav-icon">馃彔</span>
+      <span>涓婚〉</span>
+    </button>
+    <button class="nav-btn add-btn" id="navAdd">锛?/button>
+    <button class="nav-btn" id="navStats">
+      <span class="nav-icon">馃搳</span>
+      <span>缁熻</span>
+    </button>
+  </div>
+
+  <!-- 鏂板缓/缂栬緫寮瑰嚭闈㈡澘 -->
+  <div class="overlay" id="overlay">
+    <div class="sheet" id="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="sheetTitle">鏂板缓鏀惰棌</div>
+
+      <!-- 绫诲瀷閫夋嫨 -->
+      <div class="type-tabs">
+        <div class="type-tab active" data-type="text">馃摑 鏂囧瓧</div>
+        <div class="type-tab" data-type="url">馃敆 閾炬帴</div>
+        <div class="type-tab" data-type="image">馃柤锔?鍥剧墖</div>
+      </div>
+
+      <!-- 鏂囧瓧闈㈡澘 -->
+      <div id="panel-text">
+        <div class="form-group">
+          <label class="form-label">鍐呭鎽樺綍</label>
+          <textarea class="form-textarea" id="textContent" placeholder="绮樿创鎴栬緭鍏ヤ綘鎯虫敹钘忕殑鏂囧瓧鈥?></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">鏉ユ簮锛堝彲閫夛級</label>
+          <input class="form-input" id="textSource" type="text" placeholder="涔﹀悕銆佹枃绔犲悕銆佷綔鑰呪€? />
+        </div>
+      </div>
+
+      <!-- 閾炬帴闈㈡澘 -->
+      <div id="panel-url" style="display:none">
+        <div class="form-group">
+          <label class="form-label">閾炬帴鍦板潃</label>
+          <input class="form-input" id="urlContent" type="url" placeholder="https://鈥? />
+        </div>
+        <div class="form-group">
+          <label class="form-label">澶囨敞锛堝彲閫夛級</label>
+          <textarea class="form-textarea" id="urlNote" placeholder="涓轰粈涔堟敹钘忚繖涓摼鎺ワ紵" style="min-height:70px"></textarea>
+        </div>
+      </div>
+
+      <!-- 鍥剧墖闈㈡澘 -->
+      <div id="panel-image" style="display:none">
+        <div class="form-group">
+          <label class="form-label">涓婁紶鍥剧墖</label>
+          <div class="image-upload-area" id="uploadArea">
+            <div class="upload-icon">馃摲</div>
+            <div>鐐瑰嚮閫夋嫨鍥剧墖鎴栨埅鍥?/div>
+            <input type="file" id="imageFile" accept="image/*" style="display:none" />
+          </div>
+          <img class="image-preview" id="imagePreview" alt="棰勮" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">澶囨敞锛堝彲閫夛級</label>
+          <textarea class="form-textarea" id="imageNote" placeholder="杩欏紶鍥剧墖璁╀綘鎯冲埌浜嗕粈涔堬紵" style="min-height:70px"></textarea>
+        </div>
+      </div>
+
+      <!-- 鏍囩杈撳叆锛堥€氱敤锛?-->
+      <div class="form-group">
+        <label class="form-label">鏍囩锛堝洖杞︽坊鍔狅級</label>
+        <div class="tag-input-wrap" id="tagInputWrap">
+          <input type="text" id="tagInput" placeholder="杈撳叆鏍囩鍚嶁€? />
+        </div>
+      </div>
+
+      <button class="btn-submit" id="submitBtn">淇濆瓨鏀惰棌</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
